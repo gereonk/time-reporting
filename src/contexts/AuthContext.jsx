@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
   const fetchProfile = async (userId) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, full_name, email, role')
+      .select('id, email, role')
       .eq('id', userId)
       .single()
 
@@ -25,24 +25,28 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    let cancelled = false
+
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
+      if (cancelled) return
       if (session?.user) {
         setUser(session.user)
         const prof = await fetchProfile(session.user.id)
-        setProfile(prof)
+        if (!cancelled) setProfile(prof)
       }
-      setLoading(false)
+      if (!cancelled) setLoading(false)
     }
 
     getSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (cancelled) return
         if (session?.user) {
           setUser(session.user)
           const prof = await fetchProfile(session.user.id)
-          setProfile(prof)
+          if (!cancelled) setProfile(prof)
         } else {
           setUser(null)
           setProfile(null)
@@ -51,7 +55,10 @@ export function AuthProvider({ children }) {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signIn = async (email, password) => {
@@ -63,7 +70,7 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  const signUp = async (email, password, fullName) => {
+  const signUp = async (email, password) => {
     if (!email.endsWith('svt.se')) {
       throw new Error('Only svt.se email addresses are allowed to register.')
     }
@@ -71,11 +78,6 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-      },
     })
     if (error) throw error
     return data

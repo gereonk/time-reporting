@@ -73,7 +73,7 @@ export default function AdminTimeReporting() {
         .from('profiles')
         .select('*')
         .eq('role', 'consultant')
-        .order('full_name');
+        .order('email');
 
       if (userIds !== null) {
         if (userIds.length === 0) {
@@ -248,7 +248,7 @@ export default function AdminTimeReporting() {
             <option value="all">All Consultants</option>
             {consultants.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.full_name || c.email}
+                {c.email}
               </option>
             ))}
           </select>
@@ -281,7 +281,7 @@ export default function AdminTimeReporting() {
                   <tr key={consultant.id}>
                     <td className="sticky-col consultant-cell">
                       <div className="consultant-name">
-                        {consultant.full_name || 'Unnamed'}
+                        {consultant.email}
                       </div>
                       <div className="consultant-email">{consultant.email}</div>
                     </td>

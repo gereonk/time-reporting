@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
 
 export default function Register() {
-  const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -33,7 +32,7 @@ export default function Register() {
     setSubmitting(true)
 
     try {
-      await signUp(email, password, fullName)
+      await signUp(email, password)
       toast.success('Registration successful! Please check your email to confirm your account.')
       navigate('/login')
     } catch (error) {
@@ -50,19 +49,6 @@ export default function Register() {
         <p className="auth-subtitle">Register with your SVT email to get started.</p>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="fullName">Full Name</label>
-            <input
-              id="fullName"
-              type="text"
-              className="form-input"
-              placeholder="Your full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
-          </div>
-
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email</label>
             <input

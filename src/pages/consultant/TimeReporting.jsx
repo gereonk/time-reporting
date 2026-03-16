@@ -89,19 +89,31 @@ const TimeReporting = () => {
         setSaving(true)
         setSaved(false)
 
-        const { error } = await supabase.from('time_entries').upsert(
-          {
-            user_id: user.id,
-            work_date: dateKey,
-            hours: hours,
-          },
-          { onConflict: 'user_id,work_date' }
-        )
+        // Check if entry already exists
+        const { data: existing } = await supabase
+          .from('time_entries')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('work_date', dateKey)
+          .maybeSingle()
+
+        let error
+        if (existing) {
+          ({ error } = await supabase
+            .from('time_entries')
+            .update({ hours })
+            .eq('id', existing.id))
+        } else {
+          ({ error } = await supabase
+            .from('time_entries')
+            .insert({ user_id: user.id, work_date: dateKey, hours }))
+        }
 
         setSaving(false)
 
         if (error) {
-          toast.error('Failed to save entry')
+          console.error('Save error:', error)
+          toast.error(`Failed to save: ${error.message}`)
         } else {
           setSaved(true)
           setTimeout(() => setSaved(false), 2000)
@@ -112,14 +124,17 @@ const TimeReporting = () => {
   )
 
   const handleHoursChange = (dateKey, value) => {
-    const raw = value === '' ? '' : value
+    // Replace comma with dot for decimal input
+    const raw = value === '' ? '' : value.replace(',', '.')
     const num = parseFloat(raw)
 
-    if (raw !== '' && (isNaN(num) || num < 0)) return
+    // Allow empty, partial input like "7." or valid numbers >= 0
+    if (raw !== '' && raw !== '.' && !/^\d*\.?\d*$/.test(raw)) return
+    if (raw !== '' && raw !== '.' && !isNaN(num) && num < 0) return
 
     setEntries((prev) => ({ ...prev, [dateKey]: raw }))
 
-    if (raw !== '' && !isNaN(num) && num >= 0) {
+    if (raw !== '' && raw !== '.' && !isNaN(num) && num >= 0) {
       saveEntry(dateKey, num)
     }
   }
@@ -183,10 +198,9 @@ const TimeReporting = () => {
                 <span className="day-name">{day.label}</span>
                 <span className="day-date">{day.formatted}</span>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   className="form-input hours-input"
-                  min="0"
-                  step="0.5"
                   placeholder="0"
                   value={displayValue}
                   onChange={(e) => handleHoursChange(day.key, e.target.value)}

@@ -47,7 +47,7 @@ export default function AdminUsers() {
     setLoading(true);
     const [teamsResult, usersResult, membersResult] = await Promise.all([
       supabase.from('teams').select('*').order('name'),
-      supabase.from('profiles').select('*').order('full_name'),
+      supabase.from('profiles').select('*').order('email'),
       supabase.from('team_members').select('*'),
     ]);
 
@@ -130,6 +130,20 @@ export default function AdminUsers() {
   }
 
   // --- User operations ---
+
+  async function toggleRole(userId, currentRole) {
+    const newRole = currentRole === 'admin' ? 'consultant' : 'admin';
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', userId);
+    if (error) {
+      toast.error('Failed to update role');
+      return;
+    }
+    toast.success(`Role changed to ${newRole}`);
+    fetchAll();
+  }
 
   async function deleteUser(userId) {
     const { error } = await supabase.from('profiles').delete().eq('id', userId);
@@ -334,7 +348,7 @@ export default function AdminUsers() {
                             {members.map((member) => (
                               <li key={member.id} className="member-row">
                                 <span className="member-name">
-                                  {member.profile?.full_name || member.profile?.email || 'Unknown'}
+                                  {member.profile?.email || 'Unknown'}
                                 </span>
                                 <button
                                   className="btn btn-ghost btn-sm"
@@ -358,7 +372,7 @@ export default function AdminUsers() {
                               <option value="">Select consultant...</option>
                               {available.map((u) => (
                                 <option key={u.id} value={u.id}>
-                                  {u.full_name || u.email}
+                                  {u.email}
                                 </option>
                               ))}
                             </select>
@@ -409,7 +423,6 @@ export default function AdminUsers() {
           <table className="table">
             <thead>
               <tr>
-                <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
                 <th>Teams</th>
@@ -421,12 +434,17 @@ export default function AdminUsers() {
                 const userTeams = getUserTeams(u.id);
                 return (
                   <tr key={u.id}>
-                    <td>{u.full_name || '-'}</td>
                     <td>{u.email}</td>
                     <td>
-                      <span className={`role-badge role-${u.role}`}>
+                      <button
+                        className={`role-badge role-${u.role}`}
+                        style={{ cursor: u.id === user?.id ? 'not-allowed' : 'pointer', border: 'none' }}
+                        title={u.id === user?.id ? 'Cannot change own role' : `Click to make ${u.role === 'admin' ? 'consultant' : 'admin'}`}
+                        onClick={() => u.id !== user?.id && toggleRole(u.id, u.role)}
+                        disabled={u.id === user?.id}
+                      >
                         {u.role}
-                      </span>
+                      </button>
                     </td>
                     <td>
                       {userTeams.length > 0

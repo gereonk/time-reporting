@@ -15,6 +15,7 @@ const adminLinks = [
   { to: '/admin/users', label: 'Users', icon: Users },
   { to: '/admin/audit-log', label: 'Audit Log', icon: ScrollText },
   { to: '/admin/error-log', label: 'Error Log', icon: AlertTriangle },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function Layout() {

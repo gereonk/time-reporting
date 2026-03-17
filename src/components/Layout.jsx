@@ -1,11 +1,11 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Clock, Palmtree, BarChart3, Settings, Users, LogOut, Menu, X } from 'lucide-react'
+import { Clock, Palmtree, BarChart3, Settings, Users, LogOut, Menu, X, ScrollText } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
 const consultantLinks = [
   { to: '/time-reporting', label: 'Time Reporting', icon: Clock },
-  { to: '/vacation', label: 'Vacation', icon: Palmtree },
+  { to: '/vacation', label: 'Vacation, Planned absence', icon: Palmtree },
   { to: '/summary', label: 'Summary', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
@@ -13,6 +13,7 @@ const consultantLinks = [
 const adminLinks = [
   { to: '/admin/time-reporting', label: 'Time Reporting', icon: Clock },
   { to: '/admin/users', label: 'Users', icon: Users },
+  { to: '/admin/audit-log', label: 'Audit Log', icon: ScrollText },
 ]
 
 export default function Layout() {

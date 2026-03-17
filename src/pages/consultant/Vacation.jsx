@@ -10,6 +10,7 @@ import {
 import { Plus, Trash2, CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
+import { logAction } from '../../lib/auditLog'
 import { useAuth } from '../../contexts/AuthContext'
 
 function countBusinessDays(startDate, endDate) {
@@ -71,6 +72,7 @@ const Vacation = () => {
     if (error) {
       toast.error('Failed to add vacation')
     } else {
+      logAction('vacation_created', `${startDate} to ${endDate}`)
       toast.success('Vacation added')
       setStartDate('')
       setEndDate('')
@@ -86,6 +88,8 @@ const Vacation = () => {
     if (error) {
       toast.error('Failed to delete vacation')
     } else {
+      const v = vacations.find((v) => v.id === id)
+      if (v) logAction('vacation_deleted', `${v.start_date} to ${v.end_date}`)
       toast.success('Vacation deleted')
       setVacations((prev) => prev.filter((v) => v.id !== id))
     }
@@ -98,8 +102,8 @@ const Vacation = () => {
   return (
     <div className="vacation-page">
       <div className="page-header">
-        <h1>Vacation</h1>
-        <p className="text-muted">Manage your vacation days</p>
+        <h1>Vacation, Planned absence</h1>
+        <p className="text-muted">Manage your vacation and planned absence</p>
       </div>
 
       <div className="card">

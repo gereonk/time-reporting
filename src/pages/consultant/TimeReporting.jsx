@@ -12,6 +12,7 @@ import {
 import { ChevronLeft, ChevronRight, Check, Loader } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
+import { logAction } from '../../lib/auditLog'
 import { useAuth } from '../../contexts/AuthContext'
 
 const WEEKDAYS = [0, 1, 2, 3, 4] // Mon–Fri offsets from weekStart
@@ -115,6 +116,7 @@ const TimeReporting = () => {
           console.error('Save error:', error)
           toast.error(`Failed to save: ${error.message}`)
         } else {
+          logAction(existing ? 'time_entry_updated' : 'time_entry_created', `${dateKey}: ${hours}h`)
           setSaved(true)
           setTimeout(() => setSaved(false), 2000)
         }

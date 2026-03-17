@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { logAction } from '../../lib/auditLog';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   Plus,
@@ -70,6 +71,7 @@ export default function AdminUsers() {
       toast.error('Failed to create team');
       return;
     }
+    logAction('team_created', newTeamName.trim());
     toast.success('Team created');
     setNewTeamName('');
     setShowCreateTeam(false);
@@ -86,6 +88,8 @@ export default function AdminUsers() {
       toast.error('Failed to rename team');
       return;
     }
+    const oldName = teams.find((t) => t.id === teamId)?.name;
+    logAction('team_renamed', `${oldName} → ${renameValue.trim()}`);
     toast.success('Team renamed');
     setRenamingTeamId(null);
     setRenameValue('');
@@ -98,6 +102,8 @@ export default function AdminUsers() {
       toast.error('Failed to delete team');
       return;
     }
+    const teamName = teams.find((t) => t.id === teamId)?.name;
+    logAction('team_deleted', teamName);
     toast.success('Team deleted');
     setDeletingTeamId(null);
     if (expandedTeamId === teamId) setExpandedTeamId(null);
@@ -113,6 +119,9 @@ export default function AdminUsers() {
       toast.error('Failed to add member');
       return;
     }
+    const memberEmail = users.find((u) => u.id === selectedUserId)?.email;
+    const teamName = teams.find((t) => t.id === teamId)?.name;
+    logAction('member_added', `${memberEmail} → ${teamName}`);
     toast.success('Member added');
     setSelectedUserId('');
     setAddingMemberTeamId(null);
@@ -125,6 +134,10 @@ export default function AdminUsers() {
       toast.error('Failed to remove member');
       return;
     }
+    const member = teamMembers.find((m) => m.id === memberId);
+    const memberEmail = users.find((u) => u.id === member?.user_id)?.email;
+    const teamName = teams.find((t) => t.id === member?.team_id)?.name;
+    logAction('member_removed', `${memberEmail} → ${teamName}`);
     toast.success('Member removed');
     fetchAll();
   }
@@ -141,6 +154,8 @@ export default function AdminUsers() {
       toast.error('Failed to update role');
       return;
     }
+    const userEmail = users.find((u) => u.id === userId)?.email;
+    logAction('role_changed', `${userEmail}: ${currentRole} → ${newRole}`);
     toast.success(`Role changed to ${newRole}`);
     fetchAll();
   }
@@ -151,6 +166,8 @@ export default function AdminUsers() {
       toast.error('Failed to delete user');
       return;
     }
+    const userEmail = users.find((u) => u.id === userId)?.email;
+    logAction('user_deleted', userEmail);
     toast.success('User deleted');
     setDeletingUserId(null);
     fetchAll();

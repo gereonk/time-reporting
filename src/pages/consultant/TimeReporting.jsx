@@ -206,7 +206,7 @@ const TimeReporting = () => {
                   type="text"
                   inputMode="decimal"
                   className="form-input hours-input"
-                  placeholder="0"
+                  placeholder=""
                   value={displayValue}
                   onChange={(e) => handleHoursChange(day.key, e.target.value)}
                 />

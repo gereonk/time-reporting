@@ -11,6 +11,7 @@ import { Plus, Trash2, CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { logAction } from '../../lib/auditLog'
+import { logError } from '../../lib/errorLog'
 import { useAuth } from '../../contexts/AuthContext'
 
 function countBusinessDays(startDate, endDate) {
@@ -35,6 +36,7 @@ const Vacation = () => {
       .order('start_date', { ascending: false })
 
     if (error) {
+      logError('Vacation.fetch', 'Failed to load vacations', error.message)
       toast.error('Failed to load vacations')
       return
     }
@@ -70,6 +72,7 @@ const Vacation = () => {
     setSubmitting(false)
 
     if (error) {
+      logError('Vacation.submit', 'Failed to add vacation', error.message)
       toast.error('Failed to add vacation')
     } else {
       logAction('vacation_created', `${startDate} to ${endDate}`)
@@ -86,6 +89,7 @@ const Vacation = () => {
     const { error } = await supabase.from('vacations').delete().eq('id', id)
 
     if (error) {
+      logError('Vacation.delete', 'Failed to delete vacation', error.message)
       toast.error('Failed to delete vacation')
     } else {
       const v = vacations.find((v) => v.id === id)

@@ -12,6 +12,7 @@ import SettingsPage from './pages/consultant/Settings'
 import AdminTimeReporting from './pages/admin/AdminTimeReporting'
 import AdminUsers from './pages/admin/AdminUsers'
 import AuditLog from './pages/admin/AuditLog'
+import ErrorLog from './pages/admin/ErrorLog'
 
 function RootRedirect() {
   const { profile, loading } = useAuth()
@@ -58,6 +59,7 @@ function App() {
             <Route path="/admin/time-reporting" element={<AdminTimeReporting />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/audit-log" element={<AuditLog />} />
+            <Route path="/admin/error-log" element={<ErrorLog />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

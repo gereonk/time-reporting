@@ -14,6 +14,7 @@ import {
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { logError } from '../../lib/errorLog';
 
 export default function AdminTimeReporting() {
   const { user } = useAuth();
@@ -43,6 +44,7 @@ export default function AdminTimeReporting() {
     async function fetchTeams() {
       const { data, error } = await supabase.from('teams').select('*').order('name');
       if (error) {
+        logError('AdminTimeReporting.fetchTeams', 'Failed to load teams', error.message);
         toast.error('Failed to load teams');
         return;
       }
@@ -63,6 +65,7 @@ export default function AdminTimeReporting() {
           .eq('team_id', selectedTeamId);
 
         if (membersError) {
+          logError('AdminTimeReporting.fetchConsultants', 'Failed to load team members', membersError.message);
           toast.error('Failed to load team members');
           return;
         }
@@ -86,6 +89,7 @@ export default function AdminTimeReporting() {
 
       const { data, error } = await query;
       if (error) {
+        logError('AdminTimeReporting.fetchConsultants', 'Failed to load consultants', error.message);
         toast.error('Failed to load consultants');
         return;
       }
@@ -132,9 +136,11 @@ export default function AdminTimeReporting() {
       ]);
 
       if (entriesResult.error) {
+        logError('AdminTimeReporting.fetchData', 'Failed to load time entries', entriesResult.error.message);
         toast.error('Failed to load time entries');
       }
       if (vacationsResult.error) {
+        logError('AdminTimeReporting.fetchData', 'Failed to load vacations', vacationsResult.error.message);
         toast.error('Failed to load vacations');
       }
 

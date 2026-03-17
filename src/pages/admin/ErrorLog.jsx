@@ -1,23 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
-import { format } from 'date-fns';
-import { logError } from '../../lib/errorLog';
+import { format, parseISO } from 'date-fns';
+import { AlertTriangle } from 'lucide-react';
 
 const PAGE_SIZE = 100;
 
-function getRowBorderColor(action) {
-  if (/_deleted$/.test(action) || /_removed$/.test(action)) {
-    return '#ef4444'; // red
-  }
-  if (/_updated$/.test(action) || /_renamed$/.test(action) || action === 'role_changed') {
-    return '#d97706'; // amber
-  }
-  return 'transparent';
-}
-
-export default function AuditLog() {
-  const { user } = useAuth();
+export default function ErrorLog() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -33,7 +21,7 @@ export default function AuditLog() {
     }
 
     let query = supabase
-      .from('audit_logs')
+      .from('error_logs')
       .select('*')
       .order('created_at', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
@@ -45,8 +33,7 @@ export default function AuditLog() {
     const { data, error } = await query;
 
     if (error) {
-      logError('AuditLog.fetch', 'Failed to fetch audit logs', error.message);
-      console.error('Failed to fetch audit logs:', error);
+      console.error('Failed to fetch error logs:', error);
       setLoading(false);
       setLoadingMore(false);
       return;
@@ -70,12 +57,12 @@ export default function AuditLog() {
   useEffect(() => {
     async function fetchEmails() {
       const { data, error } = await supabase
-        .from('audit_logs')
+        .from('error_logs')
         .select('user_email')
         .order('user_email');
 
       if (!error && data) {
-        const unique = [...new Set(data.map((row) => row.user_email))];
+        const unique = [...new Set(data.map((row) => row.user_email).filter(Boolean))];
         setEmails(unique);
       }
     }
@@ -87,7 +74,7 @@ export default function AuditLog() {
   }
 
   function formatTimestamp(ts) {
-    return format(new Date(ts), 'MMM d, yyyy HH:mm');
+    return format(parseISO(ts), 'MMM d, yyyy HH:mm');
   }
 
   if (loading) {
@@ -95,9 +82,10 @@ export default function AuditLog() {
   }
 
   return (
-    <div className="audit-log">
-      <h1 className="page-title" style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: 24 }}>
-        Audit Log
+    <div className="error-log">
+      <h1 className="page-title" style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <AlertTriangle size={24} />
+        Error Log
       </h1>
 
       <div className="filters-bar">
@@ -125,31 +113,35 @@ export default function AuditLog() {
               <tr>
                 <th>Timestamp</th>
                 <th>User</th>
-                <th>Action</th>
-                <th>Value</th>
+                <th>Source</th>
+                <th>Message</th>
+                <th>Details</th>
               </tr>
             </thead>
             <tbody>
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', padding: '48px 20px', color: '#64748b' }}>
-                    No audit log entries found.
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '48px 20px', color: '#64748b' }}>
+                    No error log entries found.
                   </td>
                 </tr>
               ) : (
                 logs.map((log) => (
                   <tr
                     key={log.id}
-                    style={{ borderLeft: `3px solid ${getRowBorderColor(log.action)}` }}
+                    style={{ borderLeft: '3px solid #ef4444' }}
                   >
                     <td style={{ whiteSpace: 'nowrap' }}>{formatTimestamp(log.created_at)}</td>
-                    <td>{log.user_email}</td>
+                    <td>{log.user_email || '-'}</td>
                     <td>
                       <code style={{ fontSize: '0.8rem', background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>
-                        {log.action}
+                        {log.source}
                       </code>
                     </td>
-                    <td>{log.value || '-'}</td>
+                    <td>{log.message}</td>
+                    <td style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {log.details || '-'}
+                    </td>
                   </tr>
                 ))
               )}

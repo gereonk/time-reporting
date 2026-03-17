@@ -17,6 +17,7 @@ import {
 import { ChevronLeft, ChevronRight, Clock, Palmtree, Briefcase } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
+import { logError } from '../../lib/errorLog'
 import { useAuth } from '../../contexts/AuthContext'
 
 const Summary = () => {
@@ -56,9 +57,11 @@ const Summary = () => {
     ])
 
     if (entriesRes.error) {
+      logError('Summary.fetch', 'Failed to load time entries', entriesRes.error.message)
       toast.error('Failed to load time entries')
     }
     if (vacationsRes.error) {
+      logError('Summary.fetch', 'Failed to load vacations', vacationsRes.error.message)
       toast.error('Failed to load vacations')
     }
 

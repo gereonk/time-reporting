@@ -15,6 +15,7 @@ import {
   Check,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { logError } from '../../lib/errorLog';
 
 export default function AdminUsers() {
   const { user } = useAuth();
@@ -52,9 +53,18 @@ export default function AdminUsers() {
       supabase.from('team_members').select('*'),
     ]);
 
-    if (teamsResult.error) toast.error('Failed to load teams');
-    if (usersResult.error) toast.error('Failed to load users');
-    if (membersResult.error) toast.error('Failed to load team members');
+    if (teamsResult.error) {
+      logError('AdminUsers.fetchAll', 'Failed to load teams', teamsResult.error.message);
+      toast.error('Failed to load teams');
+    }
+    if (usersResult.error) {
+      logError('AdminUsers.fetchAll', 'Failed to load users', usersResult.error.message);
+      toast.error('Failed to load users');
+    }
+    if (membersResult.error) {
+      logError('AdminUsers.fetchAll', 'Failed to load team members', membersResult.error.message);
+      toast.error('Failed to load team members');
+    }
 
     setTeams(teamsResult.data || []);
     setUsers(usersResult.data || []);
@@ -68,6 +78,7 @@ export default function AdminUsers() {
     if (!newTeamName.trim()) return;
     const { error } = await supabase.from('teams').insert({ name: newTeamName.trim() });
     if (error) {
+      logError('AdminUsers.createTeam', 'Failed to create team', error.message);
       toast.error('Failed to create team');
       return;
     }
@@ -85,6 +96,7 @@ export default function AdminUsers() {
       .update({ name: renameValue.trim() })
       .eq('id', teamId);
     if (error) {
+      logError('AdminUsers.renameTeam', 'Failed to rename team', error.message);
       toast.error('Failed to rename team');
       return;
     }
@@ -99,6 +111,7 @@ export default function AdminUsers() {
   async function deleteTeam(teamId) {
     const { error } = await supabase.from('teams').delete().eq('id', teamId);
     if (error) {
+      logError('AdminUsers.deleteTeam', 'Failed to delete team', error.message);
       toast.error('Failed to delete team');
       return;
     }
@@ -116,6 +129,7 @@ export default function AdminUsers() {
       .from('team_members')
       .insert({ team_id: teamId, user_id: selectedUserId });
     if (error) {
+      logError('AdminUsers.addMember', 'Failed to add member', error.message);
       toast.error('Failed to add member');
       return;
     }
@@ -131,6 +145,7 @@ export default function AdminUsers() {
   async function removeMember(memberId) {
     const { error } = await supabase.from('team_members').delete().eq('id', memberId);
     if (error) {
+      logError('AdminUsers.removeMember', 'Failed to remove member', error.message);
       toast.error('Failed to remove member');
       return;
     }
@@ -151,6 +166,7 @@ export default function AdminUsers() {
       .update({ role: newRole })
       .eq('id', userId);
     if (error) {
+      logError('AdminUsers.toggleRole', 'Failed to update role', error.message);
       toast.error('Failed to update role');
       return;
     }
@@ -163,6 +179,7 @@ export default function AdminUsers() {
   async function deleteUser(userId) {
     const { error } = await supabase.from('profiles').delete().eq('id', userId);
     if (error) {
+      logError('AdminUsers.deleteUser', 'Failed to delete user', error.message);
       toast.error('Failed to delete user');
       return;
     }

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { logError } from '../lib/errorLog'
 
 const AuthContext = createContext({})
 
@@ -18,6 +19,7 @@ export function AuthProvider({ children }) {
       .single()
 
     if (error) {
+      logError('AuthContext.fetchProfile', 'Failed to fetch user profile', error.message)
       console.error('Error fetching profile:', error)
       return null
     }
@@ -66,7 +68,10 @@ export function AuthProvider({ children }) {
       email,
       password,
     })
-    if (error) throw error
+    if (error) {
+      logError('AuthContext.signIn', 'Sign in failed', error.message)
+      throw error
+    }
     return data
   }
 
@@ -85,7 +90,10 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    if (error) {
+      logError('AuthContext.signOut', 'Sign out failed', error.message)
+      throw error
+    }
     setUser(null)
     setProfile(null)
   }

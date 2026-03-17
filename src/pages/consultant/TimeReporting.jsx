@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight, Check, Loader } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { logAction } from '../../lib/auditLog'
+import { logError } from '../../lib/errorLog'
 import { useAuth } from '../../contexts/AuthContext'
 
 const WEEKDAYS = [0, 1, 2, 3, 4] // Mon–Fri offsets from weekStart
@@ -61,6 +62,7 @@ const TimeReporting = () => {
       .lte('work_date', friday)
 
     if (error) {
+      logError('TimeReporting.fetch', 'Failed to load time entries', error.message)
       toast.error('Failed to load time entries')
       return
     }
@@ -113,6 +115,7 @@ const TimeReporting = () => {
         setSaving(false)
 
         if (error) {
+          logError('TimeReporting.save', 'Failed to save time entry', error.message)
           console.error('Save error:', error)
           toast.error(`Failed to save: ${error.message}`)
         } else {

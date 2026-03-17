@@ -108,7 +108,7 @@ const Vacation = () => {
 
       <div className="card">
         <h2 className="card-title">
-          <CalendarDays size={20} /> Request Vacation
+          <CalendarDays size={20} /> Add vacation, planned absence
         </h2>
         <form onSubmit={handleSubmit} className="vacation-form">
           <div className="form-row">

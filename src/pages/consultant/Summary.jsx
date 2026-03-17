@@ -150,7 +150,7 @@ const Summary = () => {
             <Palmtree size={24} />
           </div>
           <div className="summary-value">{vacationDayCount}</div>
-          <div className="summary-label">Vacation Days</div>
+          <div className="summary-label">Vacation, planned absence days</div>
         </div>
 
         <div className="card summary-card">

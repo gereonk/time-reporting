@@ -29,16 +29,26 @@ const Settings = () => {
     }
 
     setSaving(true)
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
-    setSaving(false)
-
-    if (error) {
-      toast.error(error.message || 'Failed to change password')
-    } else {
-      toast.success('Password changed successfully')
-      setNewPassword('')
-      setConfirmPassword('')
+    try {
+      const result = await Promise.race([
+        supabase.auth.updateUser({ password: newPassword }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
+      ])
+      if (result.error) {
+        toast.error(result.error.message || 'Failed to change password')
+      } else {
+        toast.success('Password changed successfully')
+        setNewPassword('')
+        setConfirmPassword('')
+      }
+    } catch (err) {
+      if (err.message === 'timeout') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        toast.error(err.message || 'Failed to change password')
+      }
     }
+    setSaving(false)
   }
 
   return (
